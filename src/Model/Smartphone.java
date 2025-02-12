@@ -112,4 +112,32 @@ public class Smartphone {
     public String getOs() {
         return os;
     }
+
+    public String getScreenSizeInInches() {
+        return screenSizeInInches;
+    }
+
+    public String getOSVersion() {
+        return OSVersion;
+    }
+
+    public String getPixelresolution() {
+        return pixelresolution;
+    }
+
+    public int getNumberOfCores() {
+        return numberOfCores;
+    }
+
+    public String getBatteryCapacity() {
+        return batteryCapacity;
+    }
+
+    public String getConnectivity() {
+        return connectivity;
+    }
+
+    public String getMobiledataStandard() {
+        return mobiledataStandard;
+    }
 }

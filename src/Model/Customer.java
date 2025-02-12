@@ -16,7 +16,7 @@ public class Customer {
     private String phoneNumberPrivate;
     private String phoneNumberMobile;
 
-    public Customer(String formOfAddress, String email, String firstName, String lastName, String address, String username, String password, Date dateOfBirth, String phoneNumberPrivate, String phoneNumberMobile) {
+    public Customer(String formOfAddress, String firstName, String lastName, String email, String address, String username, Date dateOfBirth, String phoneNumberPrivate, String phoneNumberMobile, String password) {
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -30,7 +30,7 @@ public class Customer {
     }
 
     public Document toDocument() {
-        return new Document("firstName", firstName)
+        Document document = new Document("firstName", firstName)
                 .append("email", email)
                 .append("lastName", lastName)
                 .append("address", address)
@@ -40,6 +40,7 @@ public class Customer {
                 .append("phoneNumber Private", phoneNumberPrivate)
                 .append("phoneNumber Mobile", phoneNumberMobile)
                 .append("formOfAdress", formOfAddress);
+        return document;
     }
 
     public String getAddress() {
@@ -72,15 +73,15 @@ public class Customer {
 
     public static Customer fromDocument(Document doc) {
         return new Customer(
-                doc.getString("email"),
+                doc.getString("formOfAdress"),
                 doc.getString("firstName"),
                 doc.getString("lastName"),
+                doc.getString("email"),
                 doc.getString("address"),
+                doc.getString("username"),
+                doc.getDate("dateOfBirth"),
                 doc.getString("phoneNumber Private"),
                 doc.getString("phoneNumber Mobile"),
-                doc.getString("formOfAdress"),
-                doc.getDate("dateOfBirth"),
-                doc.getString("username"),
                 doc.getString("password"));
     }
 

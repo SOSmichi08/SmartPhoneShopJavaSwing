@@ -10,7 +10,7 @@ public class Order {
     private List<Smartphone> items;
     private double totalPrice;
 
-    public Order(String orderId, Customer customer, List<Smartphone> items) {
+    public Order(String orderId, Customer customer, List<Smartphone> items, double totalPrice) {
         this.orderId = orderId;
         this.customer = customer;
         this.items = items;
@@ -29,7 +29,7 @@ public class Order {
         List<Smartphone> items = ((List<Document>) doc.get("items"))
                 .stream().map(Smartphone::fromDocument).collect(Collectors.toList());
 
-        return new Order(doc.getString("orderId"), customer, items);
+        return new Order(doc.getString("orderId"), customer, items, doc.getDouble("totalPrice"));
     }
 
     public String getOrderId() { return orderId; }

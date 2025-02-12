@@ -1,14 +1,22 @@
 package Controller;
 
 import Model.Customer;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import dbConnection.DatabaseConnection;
+import dbConnection.DatabaseAccess;
 import org.bson.Document;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import java.text.ParseException;
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 
 import javax.swing.*;
@@ -29,9 +37,9 @@ public class CustomerManagement extends JFrame {
     public CustomerManagement() {
         setTitle("Customer Management");
         setSize(1400, 600);
-        setLayout(new GridLayout(6, 2));
+        setLayout(new GridLayout(6, 2,5,5));
 
-        MongoDatabase db = DatabaseConnection.getDatabase();
+        MongoDatabase db = DatabaseAccess.getDatabase();
         customerCollection = db.getCollection("customers");
 
         add(new JLabel("Customer Form of Address:"));
@@ -88,9 +96,15 @@ public class CustomerManagement extends JFrame {
         showButton.addActionListener(e -> showCustomers());
         add(showButton);
 
+        pack();
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
     }
+    CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+    CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+    //MongoClient mongoClient = MongoClients.create(uri);//fix this !!! pojo is an alternative to get connections automatically and not manually instead of the "fromDocument" method.
+    //MongoDatabase database = mongoClient.getDatabase("smartphone_shop").withCodecRegistry(pojoCodecRegistry);
+   // MongoCollection<Customer> collection = database.getCollection("flowers", Customer.class);
 
     private void createCustomer() {
         String email = emailField.getText().trim();
@@ -132,8 +146,7 @@ public class CustomerManagement extends JFrame {
             return;
         }
 
-        // Fix: Import java.util.Date and use it to create a new Date object
-        Customer customer = new Customer(formOfAddress, firstName, lastName, email, address, username, password, birthday, phoneNumberPrivate, phoneNumberMobile);
+        Customer customer = new Customer(formOfAddress, firstName, lastName, email, address, username, birthday, phoneNumberPrivate, phoneNumberMobile, password);
         customerCollection.insertOne(customer.toDocument());
         JOptionPane.showMessageDialog(this, "Customer created successfully!");
     }
@@ -214,49 +227,71 @@ public class CustomerManagement extends JFrame {
 
     private void showCustomers() {
         JDialog dialog = new JDialog(this, "Customers", true);
-        dialog.setSize(900, 400);
+        dialog.setSize(1300, 400);
         dialog.setLayout(new BorderLayout());
 
-        String[] columnNames = {"First Name", "Email", "Address", "Last Name", "Personal Phone", "Mobile Phone", "Date of Birth", "Username", "Password", "Form of Adress"};
+        JLabel label = new JLabel("Select a row and click 'Delete Customer' to remove.");
+        dialog.add(label, BorderLayout.NORTH);
+
+        String[] columnNames = {
+                "Form of Address", "First Name", "Last Name", "Email", "Address",
+                "Username", "Date of Birth", "Personal Phone", "Mobile Phone", "Password"
+        };
         List<String[]> data = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
         for (Document doc : customerCollection.find()) {
             Customer customer = Customer.fromDocument(doc);
+            String formattedDate = (customer.getDateOfBirth() != null) ? dateFormat.format(customer.getDateOfBirth()) : "N/A";
+
             data.add(new String[] {
-                    customer.getFormOfAddress(),
-                    customer.getFirstName(),
-                    customer.getLastName(),
-                    customer.getEmail(),
-                    customer.getAddress(),
-                    customer.getUsername(),
-                    String.valueOf(customer.getDateOfBirth()),
-                    customer.getPhoneNumberPrivate(),
-                    customer.getPhoneNumberMobile(),
+                    customer.getFormOfAddress(), customer.getFirstName(), customer.getLastName(),
+                    customer.getEmail(), customer.getAddress(), customer.getUsername(),
+                    formattedDate, customer.getPhoneNumberPrivate(), customer.getPhoneNumberMobile(),
                     customer.getPassword()
             });
         }
 
         String[][] dataArray = data.toArray(new String[0][]);
         JTable table = new JTable(dataArray, columnNames);
-
-        // Mouse listener for handling row selection
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                if (row >= 0) {
-                    String email = (String) table.getValueAt(row, 0);
-                    email = email.trim();
-                    System.out.println("Email to delete: " + email);
-                    deleteCustomer(email);
-                }
-            }
-        });
-
+        table.setDefaultEditor(Object.class, null);
         JScrollPane scrollPane = new JScrollPane(table);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
+        // Create delete button
+        JButton deleteButton = new JButton("Delete Customer");
+        deleteButton.setEnabled(false);
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.getSelectedRow();
+                deleteButton.setEnabled(row >= 0);
+            }
+        });
+        deleteButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(dialog, "Please select a customer to delete.");
+                return;
+            }
+
+
+            String email = (String) table.getValueAt(selectedRow, 3); // Get email from the selected row
+            email = email.trim();
+            int confirm = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this customer?",
+                    "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                deleteCustomer(email);
+                dialog.dispose();
+                showCustomers(); // Refresh table after deletion
+            }
+        });
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.add(deleteButton);
+        dialog.add(bottomPanel, BorderLayout.SOUTH);
+
         dialog.setVisible(true);
     }
-
 
 }
