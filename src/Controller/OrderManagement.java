@@ -217,7 +217,7 @@ public class OrderManagement extends JFrame {
 
         String[][] dataArray = data.toArray(new String[0][]);
         JTable table = new JTable(dataArray, columnNames);
-        table.setDefaultEditor(Object.class, null); // read only table hier
+        table.setDefaultEditor(Object.class, null); // read only table
         JScrollPane scrollPane = new JScrollPane(table);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
@@ -232,7 +232,18 @@ public class OrderManagement extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
+                int column = table.getSelectedColumn();
+
                 deleteButton.setEnabled(row >= 0);
+
+                // Double-click event for cell selection
+                if (e.getClickCount() == 2 && row >= 0 && column >= 0) {
+                    String cellValue = (String) table.getValueAt(row, column); // Get value of clicked cell
+
+                    // Display the clicked cell value in a popup window
+                    JOptionPane.showMessageDialog(dialog, "Selected cell value: " + cellValue,
+                            "Cell Information", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 

@@ -78,7 +78,7 @@ public class CustomerManagement extends JFrame {
         lastNameField = new JTextField();
         add(lastNameField);
 
-        add(new JLabel("Customer Address:"));
+        add(new JLabel("Customer Address (street, postal code, city):"));
         addressField = new JTextField();
         add(addressField);
 
@@ -107,9 +107,7 @@ public class CustomerManagement extends JFrame {
     }
     CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
     CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
-    //MongoClient mongoClient = MongoClients.create(uri);//fix this !!! pojo is an alternative to get connections automatically and not manually instead of the "fromDocument" method.
-    //MongoDatabase database = mongoClient.getDatabase("smartphone_shop").withCodecRegistry(pojoCodecRegistry);
-   // MongoCollection<Customer> collection = database.getCollection("flowers", Customer.class);
+
 
     private void createCustomer() {
         String email = emailField.getText().trim();
@@ -247,6 +245,7 @@ public class CustomerManagement extends JFrame {
 
         customerCollection.deleteOne(Filters.eq("email", email));
         JOptionPane.showMessageDialog(this, "Customer deleted successfully!");
+        System.out.println("Customer deleted successfully!");
         dispose();
         showCustomers();
     }
@@ -261,7 +260,7 @@ public class CustomerManagement extends JFrame {
         dialog.add(label, BorderLayout.NORTH);
 
         String[] columnNames = {
-                "Form of Address", "First Name", "Last Name", "Email", "Address",
+                "Form of Address", "First Name", "Last Name", "Email", "Address (street, postal code, city)",
                 "Username", "Date of Birth", "Personal Phone", "Mobile Phone", "Password"
         };
         List<String[]> data = new ArrayList<>();
@@ -303,14 +302,33 @@ public class CustomerManagement extends JFrame {
             }
 
 
-            String email = (String) table.getValueAt(selectedRow, 3); // Get email from the selected row
+            String email = (String) table.getValueAt(selectedRow, 3); // Get email from selected row
             email = email.trim();
             int confirm = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this customer?",
                     "Confirm Deletion", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 deleteCustomer(email);
                 dialog.dispose();
-                showCustomers(); // Refresh table after deletion
+                showCustomers();
+            }
+        });
+
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.getSelectedRow();
+                int column = table.getSelectedColumn();
+
+                deleteButton.setEnabled(row >= 0);
+
+                // Double-click event for cell selection
+                if (e.getClickCount() == 2 && row >= 0 && column >= 0) {
+                    String cellValue = (String) table.getValueAt(row, column); // Get value of clicked cell
+
+                    // Display the clicked cell value in a popup window
+                    JOptionPane.showMessageDialog(dialog, "Selected cell value: " + cellValue,
+                            "Cell Information", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 

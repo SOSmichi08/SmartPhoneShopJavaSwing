@@ -18,14 +18,17 @@ public class SmartphoneManagement extends JFrame {
     private MongoCollection<Document> smartphoneCollection;
 
     public SmartphoneManagement() {
+        //setup
         setTitle("Smartphone Management");
         setSize(700, 500);
         setLayout(new GridLayout(9, 2,5,5));
 
+        //database connection
         MongoDatabase db = DatabaseAccess.getDatabase();
         smartphoneCollection = db.getCollection("smartphones");
         Dimension textFieldSize = new Dimension(50, 10);
 
+        //create and add fields
         add(new JLabel("Brand:"));
         brandField = new JTextField();
         brandField.setPreferredSize(textFieldSize);
@@ -91,6 +94,8 @@ public class SmartphoneManagement extends JFrame {
         mobiledataStandardField.setPreferredSize(textFieldSize);
         add(mobiledataStandardField);
 
+
+        //create and add buttons
         JButton addButton = new JButton("Add Smartphone");
         addButton.addActionListener(e -> addSmartphone());
         add(addButton);
@@ -131,6 +136,14 @@ public class SmartphoneManagement extends JFrame {
                 connectivityField.getText(),
                 mobiledataStandardField.getText()
         );
+        if(smartphoneCollection.find(new Document("model", smartphone.getModel())).first() != null) {
+            JOptionPane.showMessageDialog(this, "Smartphone already exists!");
+            return;
+        }
+        if(smartphone.getModel().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a model name.");
+            return;
+        }
         smartphoneCollection.insertOne(smartphone.toDocument());
         JOptionPane.showMessageDialog(this, "Smartphone added!");
     }
@@ -247,7 +260,17 @@ public class SmartphoneManagement extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int row = table.getSelectedRow();
+                int column = table.getSelectedColumn();
+
                 deleteButton.setEnabled(row >= 0);
+
+                // Double-click event for cell selection
+                if (e.getClickCount() == 2 && row >= 0 && column >= 0) {
+                    String cellValue = (String) table.getValueAt(row, column); // Get value of clicked cell
+
+                    // Display the clicked cell value in a popup window
+                    JOptionPane.showMessageDialog(dialog, "Selected cell value: " + cellValue, "Cell Information", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 
@@ -258,7 +281,7 @@ public class SmartphoneManagement extends JFrame {
                 return;
             }
 
-            String model = (String) table.getValueAt(selectedRow, 1); // Model von der selected Row holen
+            String model = (String) table.getValueAt(selectedRow, 1); // Model from selected row
             model = model.trim();
             int confirm = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this smartphone?",
                     "Confirm Deletion", JOptionPane.YES_NO_OPTION);
@@ -269,12 +292,12 @@ public class SmartphoneManagement extends JFrame {
             }
         });
 
-
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.add(deleteButton);
         dialog.add(bottomPanel, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
     }
+
 
 }
