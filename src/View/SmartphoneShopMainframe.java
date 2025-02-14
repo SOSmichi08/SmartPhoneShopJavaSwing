@@ -54,7 +54,7 @@ public class SmartphoneShopMainframe extends JFrame {
         buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
         buttonPanel.setBackground(new Color(240, 240, 240));
 
-        //Buttons
+        //Buttons to the different panes
         manageSmartphonesButton = createStyledButton("Manage Smartphones");
 
         manageCustomersButton = createStyledButton("Manage Customers");
@@ -72,7 +72,7 @@ public class SmartphoneShopMainframe extends JFrame {
         setVisible(true);
     }
 
-    //create uniformly styled buttons method
+    //create same styled buttons method
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 16));

@@ -35,6 +35,7 @@ public class Smartphone {
 
     }
 
+    //object to document method
     public Document toDocument() {
         return new Document("brand", brand)
                 .append("model", model)
@@ -51,6 +52,7 @@ public class Smartphone {
                 .append("mobiledataStandard", mobiledataStandard);
     }
 
+    //document to object method
     public static Smartphone fromDocument(Document doc) {
         String brand = doc.getString("brand");
         String model = doc.getString("model");
@@ -89,32 +91,26 @@ public class Smartphone {
 
         return new Smartphone(brand, model, price, ram, screenSizeInInches, storage , os, OSVersion, pixelresolution, numberOfCores, batteryCapacity, connectivity, mobiledataStandard);
     }
-
+    //getters
     public String getBrand() {
         return brand;
     }
-
 
     public String getModel() {
         return model;
     }
 
-
-
     public double getPriceInCHF() {
         return priceInCHF;
     }
-
 
     public int getStorageInGB() {
         return storageInGB;
     }
 
-
     public int getRamInGB() {
         return ramInGB;
     }
-
 
     public String getOs() {
         return os;

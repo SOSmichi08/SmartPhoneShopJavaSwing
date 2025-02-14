@@ -17,6 +17,7 @@ public class Order {
         this.totalPrice = items.stream().mapToDouble(Smartphone::getPriceInCHF).sum();
     }
 
+    //object to document method
     public Document toDocument() {
         return new Document("orderId", orderId)  // Ensuring ID remains unchanged
                 .append("customer", customer.toDocument())
@@ -24,6 +25,7 @@ public class Order {
                 .append("totalPrice", totalPrice);
     }
 
+    //document to object method
     public static Order fromDocument(Document doc) {
         Customer customer = Customer.fromDocument((Document) doc.get("customer"));
         List<Smartphone> items = ((List<Document>) doc.get("items"))
@@ -32,6 +34,7 @@ public class Order {
         return new Order(doc.getString("orderId"), customer, items, doc.getDouble("totalPrice"));
     }
 
+    //getters
     public String getOrderId() { return orderId; }
     public Customer getCustomer() { return customer; }
     public List<Smartphone> getItems() { return items; }
@@ -39,7 +42,7 @@ public class Order {
 
     public String getSmartphoneListAsString() {
         return items.stream()
-                .map(Smartphone::getModel)  // Fixed: Now correctly fetches smartphone models
+                .map(Smartphone::getModel)  //gets smartphone models
                 .collect(Collectors.joining(", "));
     }
 }

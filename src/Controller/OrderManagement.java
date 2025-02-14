@@ -15,7 +15,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class OrderManagement extends JFrame {
     private JTextField orderIdField, customerEmailField;
@@ -38,35 +37,35 @@ public class OrderManagement extends JFrame {
         customerCollection = db.getCollection("customers");
         smartphoneCollection = db.getCollection("smartphones");
 
-        // Row 1 - Order ID
+        //Order ID
         gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
         add(new JLabel("Order ID:"), gbc);
         gbc.gridx = 1; gbc.gridy = 0;
         orderIdField = new JTextField(20);
         add(orderIdField, gbc);
 
-        // Row 2 - Customer Email
+        //Customer Email
         gbc.gridx = 0; gbc.gridy = 1;
         add(new JLabel("Customer Email:"), gbc);
         gbc.gridx = 1; gbc.gridy = 1;
         customerEmailField = new JTextField(20);
         add(customerEmailField, gbc);
 
-        // Row 3 - Smartphone Models
+        //Smartphone Models
         gbc.gridx = 0; gbc.gridy = 2;
         add(new JLabel("Smartphone Models (comma-separated):"), gbc);
         gbc.gridx = 1; gbc.gridy = 2;
         itemsField = new JTextArea(3, 20);
         add(new JScrollPane(itemsField), gbc);
 
-        // Row 4 - Buttons (spanning two columns)
+        //Buttons
         JPanel buttonPanel = new JPanel(new GridLayout(1, 3, 5, 5));
         JButton addButton = new JButton("Create Order");
         JButton updateButton = new JButton("Update Order");
         JButton showButton = new JButton("Show Orders");
         JButton helpButton = new JButton("Help");
         helpButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Please fill in the fields and click 'Add Smartphone' to add a new smartphone.\n" +
-                "To update an order, enter the Order Id and all the other attributes you want to change and click 'Update Order'.\n" +
+                "To update an order, enter the Order-ID and all the other attributes you want to change and click 'Update Order'.\n" +
                 "To delete an order, click 'Show Orders' and select a row to delete.\n" +
                 "Click 'Help' to see this message again."));
 
@@ -88,6 +87,7 @@ public class OrderManagement extends JFrame {
         setVisible(true);
     }
 
+    //create a new order
     private void createOrder() {
         String email = customerEmailField.getText().trim();
         Document customerDoc = customerCollection.find(new Document("email", email)).first();
@@ -123,6 +123,7 @@ public class OrderManagement extends JFrame {
         JOptionPane.showMessageDialog(this, "Order created successfully!");
     }
 
+    //update order by order id
     private void updateOrder() {
         String orderId = orderIdField.getText().trim();
         if (orderId.isEmpty()) {
@@ -178,7 +179,7 @@ public class OrderManagement extends JFrame {
         }
     }
 
-
+    //delete order by order id
     private void deleteOrder(String orderId) {
         if (orderId == null || orderId.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter an Order ID to delete.");
@@ -196,11 +197,15 @@ public class OrderManagement extends JFrame {
         showOrders();
     }
 
+    //show all orders in a table. User can delete an order by selecting a row and clicking "Delete Order". When he double-clicks the full value of a cell is displayed
     private void showOrders() {
         JDialog dialog = new JDialog(this, "Orders", true);
         dialog.setSize(800, 400);
         dialog.setLayout(new BorderLayout());
         setDefaultCloseOperation(dialog.DISPOSE_ON_CLOSE);
+        JLabel label = new JLabel("Select a row and click 'Delete Order' to remove. Double click a cell to view its full content.", SwingConstants.CENTER);
+        dialog.add(label, BorderLayout.NORTH);
+
 
         String[] columnNames = {"Order ID", "Customer Email", "Total Price", "Smartphones"};
         List<String[]> data = new ArrayList<>();
@@ -217,7 +222,7 @@ public class OrderManagement extends JFrame {
 
         String[][] dataArray = data.toArray(new String[0][]);
         JTable table = new JTable(dataArray, columnNames);
-        table.setDefaultEditor(Object.class, null); // read only table
+        table.setDefaultEditor(Object.class, null); // read only table (is set here)
         JScrollPane scrollPane = new JScrollPane(table);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
@@ -247,6 +252,7 @@ public class OrderManagement extends JFrame {
             }
         });
 
+        //select from table and delete order logic
         deleteButton.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {

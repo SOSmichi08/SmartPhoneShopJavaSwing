@@ -7,14 +7,9 @@ import dbConnection.DatabaseAccess;
 import org.bson.Document;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import org.bson.codecs.configuration.CodecProvider;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import java.text.ParseException;
-import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 
 
 import javax.swing.*;
@@ -32,6 +27,7 @@ public class CustomerManagement extends JFrame {
     private JFormattedTextField dateOfBirthField;
     private MongoCollection<Document> customerCollection;
 
+    //Add all buttons and text fields + labels
     public CustomerManagement() {
         setTitle("Customer Management");
         setSize(1400, 600);
@@ -105,10 +101,8 @@ public class CustomerManagement extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
     }
-    CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
-    CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 
-
+    //Creating a new customer
     private void createCustomer() {
         String email = emailField.getText().trim();
         String firstName = firstNameField.getText().trim();
@@ -154,7 +148,7 @@ public class CustomerManagement extends JFrame {
         JOptionPane.showMessageDialog(this, "Customer created successfully!");
     }
 
-
+    //updating customer by model method
     private void updateCustomer() {
         String email = emailField.getText().trim();
         if (email.isEmpty()) {
@@ -229,6 +223,7 @@ public class CustomerManagement extends JFrame {
     }
 
 
+    //deleting customer by model method
     private void deleteCustomer(String email) {
         if (email.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please select a customer to delete.");
@@ -251,12 +246,13 @@ public class CustomerManagement extends JFrame {
     }
 
 
+    //show all customers with their attributes in a table. Also, delete customer by selecting a row and then clicking 'delete customer' button. By double-clicking a cell, you can see its full content.
     private void showCustomers() {
         JDialog dialog = new JDialog(this, "Customers", true);
         dialog.setSize(1300, 400);
         dialog.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("Select a row and click 'Delete Customer' to remove.");
+        JLabel label = new JLabel("Select a row and click 'Delete Customer' to remove. Double click a cell to view its full content.", SwingConstants.CENTER);
         dialog.add(label, BorderLayout.NORTH);
 
         String[] columnNames = {
@@ -300,7 +296,6 @@ public class CustomerManagement extends JFrame {
                 JOptionPane.showMessageDialog(dialog, "Please select a customer to delete.");
                 return;
             }
-
 
             String email = (String) table.getValueAt(selectedRow, 3); // Get email from selected row
             email = email.trim();

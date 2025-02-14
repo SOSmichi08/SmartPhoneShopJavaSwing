@@ -29,6 +29,7 @@ public class Customer {
         this.formOfAddress = formOfAddress;
     }
 
+    //object to document method
     public Document toDocument() {
         Document document = new Document("firstName", firstName)
                 .append("email", email)
@@ -43,6 +44,22 @@ public class Customer {
         return document;
     }
 
+    //document to object method
+    public static Customer fromDocument(Document doc) {
+        return new Customer(
+                doc.getString("formOfAdress"),
+                doc.getString("firstName"),
+                doc.getString("lastName"),
+                doc.getString("email"),
+                doc.getString("address"),
+                doc.getString("username"),
+                doc.getDate("dateOfBirth"),
+                doc.getString("phoneNumber Private"),
+                doc.getString("phoneNumber Mobile"),
+                doc.getString("password"));
+    }
+
+    //getters
     public String getAddress() {
         return address;
     }
@@ -69,20 +86,6 @@ public class Customer {
 
     public String getPhoneNumberMobile() {
         return phoneNumberMobile;
-    }
-
-    public static Customer fromDocument(Document doc) {
-        return new Customer(
-                doc.getString("formOfAdress"),
-                doc.getString("firstName"),
-                doc.getString("lastName"),
-                doc.getString("email"),
-                doc.getString("address"),
-                doc.getString("username"),
-                doc.getDate("dateOfBirth"),
-                doc.getString("phoneNumber Private"),
-                doc.getString("phoneNumber Mobile"),
-                doc.getString("password"));
     }
 
     public String getFirstName() {

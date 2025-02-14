@@ -18,12 +18,10 @@ public class SmartphoneManagement extends JFrame {
     private MongoCollection<Document> smartphoneCollection;
 
     public SmartphoneManagement() {
-        //setup
         setTitle("Smartphone Management");
         setSize(700, 500);
         setLayout(new GridLayout(9, 2,5,5));
 
-        //database connection
         MongoDatabase db = DatabaseAccess.getDatabase();
         smartphoneCollection = db.getCollection("smartphones");
         Dimension textFieldSize = new Dimension(50, 10);
@@ -120,6 +118,7 @@ public class SmartphoneManagement extends JFrame {
         setVisible(true);
     }
 
+    //add a smartphone to db
     private void addSmartphone() {
         Smartphone smartphone = new Smartphone(
                 brandField.getText(),
@@ -148,6 +147,7 @@ public class SmartphoneManagement extends JFrame {
         JOptionPane.showMessageDialog(this, "Smartphone added!");
     }
 
+    //update smartphone by model name
     private void updateSmartphone() {
         String model = modelField.getText();
         if (model == null || model.trim().isEmpty()) {
@@ -164,7 +164,7 @@ public class SmartphoneManagement extends JFrame {
         }
 
         Document updateFields = new Document();
-
+        //keeps old data for attributes if no new data is available
         if (!brandField.getText().trim().isEmpty())
             updateFields.append("brand", brandField.getText());
 
@@ -210,7 +210,7 @@ public class SmartphoneManagement extends JFrame {
         }
     }
 
-
+    //delete smartphone by model name
     private void deleteSmartphone(String model) {
         if (model == null || model.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a Model to delete.");
@@ -219,13 +219,13 @@ public class SmartphoneManagement extends JFrame {
         smartphoneCollection.deleteOne(new Document("model", model));
         JOptionPane.showMessageDialog(this, "Smartphone deleted!");
     }
-
+    //show all smartphones in a table. User can delete a smartphone by selecting a row and clicking 'Delete Smartphone'. When he double-clicks on a cell its full content is displayed in a dialog.
     private void showSmartphones() {
         JDialog dialog = new JDialog(this, "Smartphones", true);
         dialog.setSize(1300, 400);
         dialog.setLayout(new BorderLayout());
 
-        JLabel label = new JLabel("Select a row and click 'Delete Smartphone' to remove.");
+        JLabel label = new JLabel("Select a row and click 'Delete Smartphone' to remove. Double click a cell to view its full content.", SwingConstants.CENTER);
         dialog.add(label, BorderLayout.NORTH);
 
         String[] columnNames = {
@@ -246,10 +246,10 @@ public class SmartphoneManagement extends JFrame {
                     phone.getBatteryCapacity(), phone.getConnectivity(), phone.getMobiledataStandard()
             });
         }
-
+        // make table read-only
         String[][] dataArray = data.toArray(new String[0][]);
         JTable table = new JTable(dataArray, columnNames);
-        table.setDefaultEditor(Object.class, null); // To make the table read-only
+        table.setDefaultEditor(Object.class, null);
         JScrollPane scrollPane = new JScrollPane(table);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
@@ -268,7 +268,7 @@ public class SmartphoneManagement extends JFrame {
                 if (e.getClickCount() == 2 && row >= 0 && column >= 0) {
                     String cellValue = (String) table.getValueAt(row, column); // Get value of clicked cell
 
-                    // Display the clicked cell value in a popup window
+                    // Display  clicked cell value popup
                     JOptionPane.showMessageDialog(dialog, "Selected cell value: " + cellValue, "Cell Information", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
@@ -280,8 +280,8 @@ public class SmartphoneManagement extends JFrame {
                 JOptionPane.showMessageDialog(dialog, "Please select a smartphone to delete.");
                 return;
             }
-
-            String model = (String) table.getValueAt(selectedRow, 1); // Model from selected row
+            // Model from selected row
+            String model = (String) table.getValueAt(selectedRow, 1);
             model = model.trim();
             int confirm = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this smartphone?",
                     "Confirm Deletion", JOptionPane.YES_NO_OPTION);
@@ -291,7 +291,7 @@ public class SmartphoneManagement extends JFrame {
                 showSmartphones();
             }
         });
-
+        //add delete button and bottom panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.add(deleteButton);
         dialog.add(bottomPanel, BorderLayout.SOUTH);
