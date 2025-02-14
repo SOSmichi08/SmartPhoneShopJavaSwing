@@ -17,6 +17,7 @@ public class SmartphoneShopMainframe extends JFrame {
     private JButton manageCustomersButton;
     private JButton manageOrdersButton;
 
+    // Mainframe for Smartphone Shop
     public SmartphoneShopMainframe() {
         setTitle("Smartphone Shop Admin");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
