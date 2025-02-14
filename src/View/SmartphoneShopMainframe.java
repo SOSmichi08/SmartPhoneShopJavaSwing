@@ -36,7 +36,7 @@ public class SmartphoneShopMainframe extends JFrame {
         contentPanel.setBackground(new Color(240, 240, 240));
         contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         setContentPane(contentPanel);
-
+        //title bar
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(new Color(0, 122, 255));
         titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -45,6 +45,7 @@ public class SmartphoneShopMainframe extends JFrame {
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 22));
         titleLabel.setForeground(Color.WHITE);
 
+        //clock on the right of the blue title bar
         JLabel timeLabel = new JLabel();
         timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 22));
         timeLabel.setForeground(Color.WHITE);
@@ -53,7 +54,6 @@ public class SmartphoneShopMainframe extends JFrame {
         titlePanel.add(titleLabel, BorderLayout.CENTER);
         titlePanel.add(timeLabel, BorderLayout.EAST);
         contentPanel.add(titlePanel, BorderLayout.NORTH);
-
         final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
         ActionListener timerListener = e -> {
             Date date = new Date();
@@ -67,7 +67,7 @@ public class SmartphoneShopMainframe extends JFrame {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
         buttonPanel.setBackground(new Color(240, 240, 240));
-
+        //buttons
         manageSmartphonesButton = createStyledButton("Manage Smartphones");
         manageCustomersButton = createStyledButton("Manage Customers");
         manageOrdersButton = createStyledButton("Manage Orders");
@@ -82,6 +82,7 @@ public class SmartphoneShopMainframe extends JFrame {
         setVisible(true);
     }
 
+    //same button style for all buttons
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 16));
