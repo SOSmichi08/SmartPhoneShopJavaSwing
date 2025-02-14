@@ -6,7 +6,10 @@ import Controller.SmartphoneManagement;
 
 import javax.swing.*;
 import java.awt.*;
-import javax.swing.border.BevelBorder;
+import java.awt.event.ActionListener;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.swing.border.EmptyBorder;
 
 public class SmartphoneShopMainframe extends JFrame {
@@ -15,7 +18,6 @@ public class SmartphoneShopMainframe extends JFrame {
     private JButton manageOrdersButton;
 
     public SmartphoneShopMainframe() {
-        // Set title and window close operation
         setTitle("Smartphone Shop Admin");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(500, 350));
@@ -28,40 +30,47 @@ public class SmartphoneShopMainframe extends JFrame {
             e.printStackTrace();
         }
 
-
-        // Main content panel
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(240, 240, 240));
         contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         setContentPane(contentPanel);
 
-        // Title Panel
-        JPanel titlePanel = new JPanel();
+        JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(new Color(0, 122, 255));
-        JLabel titleLabel = new JLabel("Smartphone Shop Admin", SwingConstants.CENTER);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Smartphone Shop Admin", SwingConstants.LEFT);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 22));
         titleLabel.setForeground(Color.WHITE);
-        titlePanel.setLayout(new BorderLayout());
-        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel timeLabel = new JLabel();
+        timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 22));
+        timeLabel.setForeground(Color.WHITE);
+        timeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        titlePanel.add(timeLabel, BorderLayout.EAST);
         contentPanel.add(titlePanel, BorderLayout.NORTH);
-        titlePanel.add(titleLabel);
 
+        final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+        ActionListener timerListener = e -> {
+            Date date = new Date();
+            String time = timeFormat.format(date);
+            timeLabel.setText(time);
+        };
+        Timer timer = new Timer(1000, timerListener);
+        timer.setInitialDelay(0);
+        timer.start();
 
-
-        // Button Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
         buttonPanel.setBackground(new Color(240, 240, 240));
 
-        //Buttons to the different panes
         manageSmartphonesButton = createStyledButton("Manage Smartphones");
-
         manageCustomersButton = createStyledButton("Manage Customers");
-
         manageOrdersButton = createStyledButton("Manage Orders");
 
-        // Adding buttons to panel
         buttonPanel.add(manageSmartphonesButton);
         buttonPanel.add(manageCustomersButton);
         buttonPanel.add(manageOrdersButton);
@@ -72,7 +81,6 @@ public class SmartphoneShopMainframe extends JFrame {
         setVisible(true);
     }
 
-    //create same styled buttons method
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -94,8 +102,6 @@ public class SmartphoneShopMainframe extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SmartphoneShopMainframe app = new SmartphoneShopMainframe();
-        });
+        SwingUtilities.invokeLater(SmartphoneShopMainframe::new);
     }
 }

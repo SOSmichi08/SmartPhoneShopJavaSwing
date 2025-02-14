@@ -8,6 +8,9 @@ import org.bson.Document;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.conversions.Bson;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.ParseException;
 
 
@@ -31,7 +34,7 @@ public class CustomerManagement extends JFrame {
     public CustomerManagement() {
         setTitle("Customer Management");
         setSize(1400, 600);
-        setLayout(new GridLayout(6, 2,5,5));
+        setLayout(new GridLayout(7, 2,5,5));
 
         MongoDatabase db = DatabaseAccess.getDatabase();
         customerCollection = db.getCollection("customers");
