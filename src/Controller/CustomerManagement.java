@@ -1,8 +1,6 @@
 package Controller;
 
 import Model.Customer;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import dbConnection.DatabaseAccess;
@@ -54,7 +52,7 @@ public class CustomerManagement extends JFrame {
         passwordField = new JTextField();
         add(passwordField);
 
-        add(new JLabel("Customer Date of Birth:"));
+        add(new JLabel("Customer Date of Birth (dd/MM/yyyy):"));
         DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         dateOfBirthField = new JFormattedTextField(df);
         dateOfBirthField.setColumns(10);
@@ -95,6 +93,13 @@ public class CustomerManagement extends JFrame {
         JButton showButton = new JButton("Show Customers");
         showButton.addActionListener(e -> showCustomers());
         add(showButton);
+
+        JButton helpButton = new JButton("Help");
+        helpButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Please fill in the fields and click 'Add Smartphone' to add a new smartphone.\n" +
+                "To update a customer, first enter the customer's email, then enter all the attributes of the customer syou want to change and click 'Update Customer'.\n" +
+                "To delete a customer, click 'Show Customers' and select a row to delete.\n" +
+                "Click 'Help' to see this message again."));
+        add(helpButton);
 
         pack();
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -174,10 +179,30 @@ public class CustomerManagement extends JFrame {
         String phoneNumberPrivate = phoneNumberPrivateField.getText().trim();
         String phoneNumberMobile = phoneNumberMobileField.getText().trim();
         String emailNew = emailField.getText().trim();
-        Date birthday = dateOfBirthField.getText().trim().isEmpty() ? null : new Date();
 
-        if (firstName.isEmpty() && lastName.isEmpty() && address.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nothing to update.");
+        Date birthday = null;
+        try {
+            String dateText = dateOfBirthField.getText().trim();
+            if (!dateText.isEmpty()) {
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                df.setLenient(false);
+                birthday = df.parse(dateText);
+            }
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Invalid date format. Please use dd/MM/yyyy.");
+            return;
+        }
+
+        if (firstName.isEmpty() && lastName.isEmpty() && address.isEmpty() &&
+                formOfAddress.isEmpty() && username.isEmpty() && password.isEmpty() &&
+                phoneNumberPrivate.isEmpty() && phoneNumberMobile.isEmpty() &&
+                birthday == null && emailNew.equals(email)) {
+            JOptionPane.showMessageDialog(this, "Nothing to update. Please enter the specifications you want to change.");
+            return;
+        }
+
+        if (emailNew.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter an email to update.");
             return;
         }
 
@@ -185,13 +210,14 @@ public class CustomerManagement extends JFrame {
         if (!firstName.isEmpty()) updates.add(Updates.set("firstName", firstName));
         if (!lastName.isEmpty()) updates.add(Updates.set("lastName", lastName));
         if (!address.isEmpty()) updates.add(Updates.set("address", address));
-        if (!formOfAddress.isEmpty()) updates.add(Updates.set("formOfAddress", formOfAddress));
+        if (!formOfAddress.isEmpty()) updates.add(Updates.set("formOfAdress", formOfAddress));
         if (!username.isEmpty()) updates.add(Updates.set("username", username));
         if (!password.isEmpty()) updates.add(Updates.set("password", password));
-        if (birthday != null) updates.add(Updates.set("DateOfBirth", birthday));
-        if (!phoneNumberPrivate.isEmpty()) updates.add(Updates.set("phoneNumberPrivate", phoneNumberPrivate));
-        if (!phoneNumberMobile.isEmpty()) updates.add(Updates.set("phoneNumberMobile", phoneNumberMobile));
-        if (!emailNew.isEmpty() &&!emailNew.equals(email)) {
+        if (birthday != null) updates.add(Updates.set("dateOfBirth", birthday));
+        if (!phoneNumberPrivate.isEmpty()) updates.add(Updates.set("phoneNumber Private", phoneNumberPrivate));
+        if (!phoneNumberMobile.isEmpty()) updates.add(Updates.set("phoneNumber Mobile", phoneNumberMobile));
+
+        if (!emailNew.isEmpty() && !emailNew.equals(email)) {
             Document existingCustomerNew = customerCollection.find(Filters.eq("email", emailNew)).first();
             if (existingCustomerNew != null) {
                 JOptionPane.showMessageDialog(this, "Customer with new email already exists.");
@@ -203,6 +229,7 @@ public class CustomerManagement extends JFrame {
         customerCollection.updateOne(Filters.eq("email", email), Updates.combine(updates));
         JOptionPane.showMessageDialog(this, "Customer updated successfully!");
     }
+
 
     private void deleteCustomer(String email) {
         if (email.isEmpty()) {

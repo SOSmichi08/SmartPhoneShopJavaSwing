@@ -8,7 +8,6 @@ import com.mongodb.client.MongoDatabase;
 import dbConnection.DatabaseAccess;
 import org.bson.Document;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Updates;
 
 import javax.swing.*;
 import java.awt.*;
@@ -65,6 +64,11 @@ public class OrderManagement extends JFrame {
         JButton addButton = new JButton("Create Order");
         JButton updateButton = new JButton("Update Order");
         JButton showButton = new JButton("Show Orders");
+        JButton helpButton = new JButton("Help");
+        helpButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Please fill in the fields and click 'Add Smartphone' to add a new smartphone.\n" +
+                "To update an order, enter the Order Id and all the other attributes you want to change and click 'Update Order'.\n" +
+                "To delete an order, click 'Show Orders' and select a row to delete.\n" +
+                "Click 'Help' to see this message again."));
 
         addButton.addActionListener(e -> createOrder());
         updateButton.addActionListener(e -> updateOrder());
@@ -73,6 +77,8 @@ public class OrderManagement extends JFrame {
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(showButton);
+        buttonPanel.add(helpButton);
+
 
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
         add(buttonPanel, gbc);
@@ -110,7 +116,7 @@ public class OrderManagement extends JFrame {
         }
 
         Customer customer = Customer.fromDocument(customerDoc);
-        String orderId = UUID.randomUUID().toString();
+        String orderId = orderIdField.getText().trim().toString();
         Order order = new Order(orderId, customer, items, totalPrice);
 
         orderCollection.insertOne(order.toDocument());
@@ -120,7 +126,7 @@ public class OrderManagement extends JFrame {
     private void updateOrder() {
         String orderId = orderIdField.getText().trim();
         if (orderId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter an Order ID to update.");
+            JOptionPane.showMessageDialog(this, "Please enter an Order-ID to update.");
             return;
         }
 
@@ -130,43 +136,48 @@ public class OrderManagement extends JFrame {
             return;
         }
 
+        Document updateFields = new Document();
+
         String email = customerEmailField.getText().trim();
-        Document customerDoc = customerCollection.find(new Document("email", email)).first();
-        if (customerDoc == null) {
-            JOptionPane.showMessageDialog(this, "Customer not found!");
-            return;
-        }
-
-        List<Smartphone> items = new ArrayList<>();
-        double totalPrice = 0.0;
-        String[] models = itemsField.getText().split(",");
-
-        for (String model : models) {
-            Document phoneDoc = smartphoneCollection.find(new Document("model", model.trim())).first();
-            if (phoneDoc != null) {
-                Smartphone phone = Smartphone.fromDocument(phoneDoc);
-                items.add(phone);
-                totalPrice += phone.getPriceInCHF();
+        if (!email.isEmpty()) {
+            Document customerDoc = customerCollection.find(new Document("email", email)).first();
+            if (customerDoc != null) {
+                updateFields.append("customer", customerDoc);
+            } else {
+                JOptionPane.showMessageDialog(this, "Customer not found!");
+                return;
             }
         }
 
-        if (items.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No valid smartphones found!");
-            return;
+        String[] models = itemsField.getText().split(",");
+        List<Document> updatedItems = new ArrayList<>();
+        double totalPrice = 0.0;
+
+        if (models.length > 0 && !models[0].trim().isEmpty()) {
+            for (String model : models) {
+                Document phoneDoc = smartphoneCollection.find(new Document("model", model.trim())).first();
+                if (phoneDoc != null) {
+                    updatedItems.add(phoneDoc);
+                    totalPrice += phoneDoc.getDouble("price");
+                }
+            }
+            if (!updatedItems.isEmpty()) {
+                updateFields.append("items", updatedItems);
+                updateFields.append("totalPrice", totalPrice);
+            } else {
+                JOptionPane.showMessageDialog(this, "No valid smartphones found!");
+                return;
+            }
         }
 
-        Customer customer = Customer.fromDocument(customerDoc);
-        Order updatedOrder = new Order(orderId, customer, items, totalPrice);
-
-        orderCollection.updateOne(Filters.eq("orderId", orderId),
-                Updates.combine(
-                        Updates.set("customer", updatedOrder.getCustomer().toDocument()),
-                        Updates.set("items", updatedOrder.getItems().stream().map(Smartphone::toDocument).toList()),
-                        Updates.set("totalPrice", updatedOrder.getTotalPrice())
-                ));
-
-        JOptionPane.showMessageDialog(this, "Order updated successfully!");
+        if (!updateFields.isEmpty()) {
+            orderCollection.updateOne(Filters.eq("orderId", orderId), new Document("$set", updateFields));
+            JOptionPane.showMessageDialog(this, "Order updated successfully!");
+        } else {
+            JOptionPane.showMessageDialog(this, "No new values were inputted. Nothing was updated.");
+        }
     }
+
 
     private void deleteOrder(String orderId) {
         if (orderId == null || orderId.trim().isEmpty()) {
@@ -189,7 +200,7 @@ public class OrderManagement extends JFrame {
         JDialog dialog = new JDialog(this, "Orders", true);
         dialog.setSize(800, 400);
         dialog.setLayout(new BorderLayout());
-        setDefaultCloseOperation(dialog.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(dialog.DISPOSE_ON_CLOSE);
 
         String[] columnNames = {"Order ID", "Customer Email", "Total Price", "Smartphones"};
         List<String[]> data = new ArrayList<>();
@@ -206,7 +217,7 @@ public class OrderManagement extends JFrame {
 
         String[][] dataArray = data.toArray(new String[0][]);
         JTable table = new JTable(dataArray, columnNames);
-        table.setDefaultEditor(Object.class, null); // To make the table read-only
+        table.setDefaultEditor(Object.class, null); // read only table hier
         JScrollPane scrollPane = new JScrollPane(table);
         dialog.add(scrollPane, BorderLayout.CENTER);
 

@@ -39,9 +39,16 @@ public class Smartphone {
         return new Document("brand", brand)
                 .append("model", model)
                 .append("price", priceInCHF)
-                .append("storage", storageInGB)
                 .append("ram", ramInGB)
-                .append("os", os);
+                .append("screenSizeInInches", screenSizeInInches)
+                .append("storage", storageInGB)
+                .append("os", os)
+                .append("OSVersion", OSVersion)
+                .append("pixelresolution", pixelresolution)
+                .append("numberOfCores", numberOfCores)
+                .append("batteryCapacity", batteryCapacity)
+                .append("connectivity", connectivity)
+                .append("mobiledataStandard", mobiledataStandard);
     }
 
     public static Smartphone fromDocument(Document doc) {

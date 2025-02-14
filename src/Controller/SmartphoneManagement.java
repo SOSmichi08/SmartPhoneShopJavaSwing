@@ -7,7 +7,6 @@ import dbConnection.DatabaseAccess;
 import org.bson.Document;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -23,7 +22,6 @@ public class SmartphoneManagement extends JFrame {
         setSize(700, 500);
         setLayout(new GridLayout(9, 2,5,5));
 
-
         MongoDatabase db = DatabaseAccess.getDatabase();
         smartphoneCollection = db.getCollection("smartphones");
         Dimension textFieldSize = new Dimension(50, 10);
@@ -38,17 +36,17 @@ public class SmartphoneManagement extends JFrame {
         modelField.setPreferredSize(textFieldSize);
         add(modelField);
 
-        add(new JLabel("Price:"));
+        add(new JLabel("Price (in CHF):"));
         priceField = new JTextField();
         priceField.setPreferredSize(textFieldSize);
         add(priceField);
 
-        add(new JLabel("Storage:"));
+        add(new JLabel("Storage (in GB):"));
         storageField = new JTextField();
         storageField.setPreferredSize(textFieldSize);
         add(storageField);
 
-        add(new JLabel("RAM:"));
+        add(new JLabel("RAM (in GB):"));
         ramField = new JTextField();
         ramField.setPreferredSize(textFieldSize);
         add(ramField);
@@ -78,17 +76,17 @@ public class SmartphoneManagement extends JFrame {
         numberOfCoresField.setPreferredSize(textFieldSize);
         add(numberOfCoresField);
 
-        add(new JLabel("Battery Capacity"));
+        add(new JLabel("Battery Capacity (in mAh)"));
         batteryCapacityField = new JTextField();
         batteryCapacityField.setPreferredSize(textFieldSize);
         add(batteryCapacityField);
 
-        add(new JLabel("Connectivity"));
+        add(new JLabel("Connectivity (e.g. NFC, Bluetooth, USB-C)"));
         connectivityField = new JTextField();
         connectivityField.setPreferredSize(textFieldSize);
         add(connectivityField);
 
-        add(new JLabel("Mobile Data Standard"));
+        add(new JLabel("Mobile Data Standard (e.g. 4G, 5G)"));
         mobiledataStandardField = new JTextField();
         mobiledataStandardField.setPreferredSize(textFieldSize);
         add(mobiledataStandardField);
@@ -104,6 +102,13 @@ public class SmartphoneManagement extends JFrame {
         JButton showButton = new JButton("Show Smartphones");
         showButton.addActionListener(e -> showSmartphones());
         add(showButton);
+
+        JButton helpButton = new JButton("Help");
+        helpButton.addActionListener(e -> JOptionPane.showMessageDialog(this, "Please fill in the fields and click 'Add Smartphone' to add a new smartphone.\n" +
+                "To update a smartphone, first enter the model name, then all the attributes you want to change (model name is required and click 'Update Smartphone'.\n" +
+                "To delete a smartphone, click 'Show Smartphones' and select a row to delete.\n" +
+                "Click 'Help' to see this message again."));
+        add(helpButton);
 
         pack();
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -132,6 +137,11 @@ public class SmartphoneManagement extends JFrame {
 
     private void updateSmartphone() {
         String model = modelField.getText();
+        if (model == null || model.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a smartphone model to update.");
+            return;
+        }
+
         Document query = new Document("model", model);
         Document existingPhone = smartphoneCollection.find(query).first();
 
@@ -140,25 +150,53 @@ public class SmartphoneManagement extends JFrame {
             return;
         }
 
-        Smartphone updatedPhone = new Smartphone(
-                brandField.getText(),
-                modelField.getText(),
-                Double.parseDouble(priceField.getText()),
-                Integer.parseInt(ramField.getText()),
-                screenSizeInInchesField.getText(),
-                Integer.parseInt(storageField.getText()),
-                osField.getText(),
-                osVersionField.getText(),
-                pixelResolutionField.getText(),
-                Integer.parseInt(numberOfCoresField.getText()),
-                batteryCapacityField.getText(),
-                connectivityField.getText(),
-                mobiledataStandardField.getText()
-        );
+        Document updateFields = new Document();
 
-        smartphoneCollection.replaceOne(query, updatedPhone.toDocument());
-        JOptionPane.showMessageDialog(this, "Smartphone updated!");
+        if (!brandField.getText().trim().isEmpty())
+            updateFields.append("brand", brandField.getText());
+
+        if (!priceField.getText().trim().isEmpty())
+            updateFields.append("price", Double.parseDouble(priceField.getText()));
+
+        if (!ramField.getText().trim().isEmpty())
+            updateFields.append("ram", Integer.parseInt(ramField.getText()));
+
+        if (!storageField.getText().trim().isEmpty())
+            updateFields.append("storage", Integer.parseInt(storageField.getText()));
+
+        if (!osField.getText().trim().isEmpty())
+            updateFields.append("os", osField.getText());
+
+        if (!osVersionField.getText().trim().isEmpty())
+            updateFields.append("osVersion", osVersionField.getText());
+
+        if (!pixelResolutionField.getText().trim().isEmpty())
+            updateFields.append("pixelResolution", pixelResolutionField.getText());
+
+        if (!screenSizeInInchesField.getText().trim().isEmpty())
+            updateFields.append("screenSizeInInches", screenSizeInInchesField.getText());
+
+        if (!numberOfCoresField.getText().trim().isEmpty())
+            updateFields.append("numberOfCores", Integer.parseInt(numberOfCoresField.getText()));
+
+        if (!batteryCapacityField.getText().trim().isEmpty())
+            updateFields.append("batteryCapacity", batteryCapacityField.getText());
+
+        if (!connectivityField.getText().trim().isEmpty())
+            updateFields.append("connectivity", connectivityField.getText());
+
+        if (!mobiledataStandardField.getText().trim().isEmpty())
+            updateFields.append("mobiledataStandard", mobiledataStandardField.getText());
+
+        if (!updateFields.isEmpty()) {
+            Document updateOperation = new Document("$set", updateFields);
+            smartphoneCollection.updateOne(query, updateOperation);
+            JOptionPane.showMessageDialog(this, "Smartphone updated successfully!");
+        } else {
+            JOptionPane.showMessageDialog(this, "No new values were inputted. Nothing was updated.");
+        }
     }
+
 
     private void deleteSmartphone(String model) {
         if (model == null || model.trim().isEmpty()) {
@@ -171,7 +209,7 @@ public class SmartphoneManagement extends JFrame {
 
     private void showSmartphones() {
         JDialog dialog = new JDialog(this, "Smartphones", true);
-        dialog.setSize(1200, 400);
+        dialog.setSize(1300, 400);
         dialog.setLayout(new BorderLayout());
 
         JLabel label = new JLabel("Select a row and click 'Delete Smartphone' to remove.");
@@ -220,14 +258,14 @@ public class SmartphoneManagement extends JFrame {
                 return;
             }
 
-            String model = (String) table.getValueAt(selectedRow, 1); // Get model from selected row
+            String model = (String) table.getValueAt(selectedRow, 1); // Model von der selected Row holen
             model = model.trim();
             int confirm = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this smartphone?",
                     "Confirm Deletion", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 deleteSmartphone(model);
                 dialog.dispose();
-                showSmartphones(); // Refresh table after deletion
+                showSmartphones();
             }
         });
 
